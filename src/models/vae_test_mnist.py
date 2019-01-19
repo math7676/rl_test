@@ -8,11 +8,15 @@ import matplotlib.pyplot as plt
 np.random.seed(0)
 tf.set_random_seed(0)
 
-import input_data
-mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
-n_samples = mnist.train.num_examples
+import input_data_car_race
+#import input_data
 
-
+#mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+#toto=(mnist.train.next_batch(10))
+#n_samples = mnist.train.num_examples
+cars=input_data_car_race.car_data(path='./../../data/raw')
+n_samples = len(cars.images)
+#%%
 def xavier_init(fan_in, fan_out, constant=1): 
     """ Xavier initialization of network weights"""
     # https://stackoverflow.com/questions/33640581/how-to-do-xavier-initialization-on-tensorflow
@@ -199,7 +203,7 @@ class VariationalAutoencoder(object):
         
         
 def train(network_architecture, learning_rate=0.001,
-          batch_size=100, training_epochs=10, display_step=5):
+          batch_size=10, training_epochs=10, display_step=5):
     vae = VariationalAutoencoder(network_architecture, 
                                  learning_rate=learning_rate, 
                                  batch_size=batch_size)
@@ -209,7 +213,7 @@ def train(network_architecture, learning_rate=0.001,
         total_batch = int(n_samples / batch_size)
         # Loop over all batches
         for i in range(total_batch):
-            batch_xs, _ = mnist.train.next_batch(batch_size)
+            batch_xs, _ = cars.next_batch(batch_size)
 
             # Fit training using batch data
             cost = vae.partial_fit(batch_xs)
@@ -230,25 +234,25 @@ network_architecture = \
          n_hidden_recog_2=500, # 2nd layer encoder neurons
          n_hidden_gener_1=500, # 1st layer decoder neurons
          n_hidden_gener_2=500, # 2nd layer decoder neurons
-         n_input=784, # MNIST data input (img shape: 28*28)
-         n_z=20)  # dimensionality of latent space
+         n_input=83*96, # MNIST data input (img shape: 28*28)
+         n_z=32)  # dimensionality of latent space
 
 vae = train(network_architecture, training_epochs=75)
 
 #%%
 
-x_sample = mnist.test.next_batch(100)[0]
+x_sample =  cars.next_batch(10)[0]
 x_reconstruct = vae.reconstruct(x_sample)
 
 plt.figure(figsize=(8, 12))
 for i in range(5):
 
     plt.subplot(5, 2, 2*i + 1)
-    plt.imshow(x_sample[i].reshape(28, 28), vmin=0, vmax=1, cmap="gray")
+    plt.imshow(x_sample[i].reshape(83, 96), cmap="gray")
     plt.title("Test input")
     plt.colorbar()
     plt.subplot(5, 2, 2*i + 2)
-    plt.imshow(x_reconstruct[i].reshape(28, 28), vmin=0, vmax=1, cmap="gray")
+    plt.imshow(x_reconstruct[i].reshape(83,96), cmap="gray")
     plt.title("Reconstruction")
     plt.colorbar()
 plt.tight_layout()
